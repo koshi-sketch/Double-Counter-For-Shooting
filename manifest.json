@@ -1,0 +1,10 @@
+{
+  "name": "Double Count",
+  "short_name": "DoubleCount",
+  "description": "運動撮影用タイマーアプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait"
+}
