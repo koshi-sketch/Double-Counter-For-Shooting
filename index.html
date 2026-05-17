@@ -73,8 +73,8 @@
       color: #fff;
     }
     .time.stopped { color: #444; }
-    .time.warn    { color: var(--warn); }
-    .time.danger  { color: var(--danger); }
+    .time.warn    { color: var(--warn); text-shadow: 0 0 30px rgba(239,159,39,0.6), 0 0 60px rgba(239,159,39,0.3); }
+    .time.danger  { color: var(--danger); text-shadow: 0 0 30px rgba(226,75,74,0.7), 0 0 60px rgba(226,75,74,0.4), 0 0 2px #fff, 0 0 6px #fff, 0 0 12px #fff; }
 
     /* ── プログレスバー ── */
     .bar-wrap {
@@ -113,8 +113,8 @@
       cursor: pointer;
       transition: color 0.12s, border-color 0.12s, transform 0.08s;
     }
-    .btn-add.minus { color: #e24b4aaa; border-color: #e24b4a55; }
-    .btn-add.minus:active { color: var(--danger); border-color: var(--danger); transform: scale(0.93); }
+    .btn-add.minus { color: #ccc; border-color: #666; }
+    .btn-add.minus:active { color: #fff; border-color: #aaa; transform: scale(0.93); }
     .btn-add.plus:active  { color: #fff; border-color: #aaa; transform: scale(0.93); }
 
     /* ── START / RESET ── */
@@ -160,7 +160,12 @@
     }
     .btn-sub:active { transform: scale(0.95); color: #fff; }
 
-    /* ── ステータスドット ── */
+    @keyframes pulse-warn {
+      0%, 100% { background: #000; }
+      50% { background: #1a0f00; }
+    }
+    .section.warn-bg   { animation: pulse-warn 1s ease-in-out infinite; }
+    .section.danger-bg { background: #1a0000; }
     .status-dot {
       width: 4px;
       height: 4px;
@@ -400,13 +405,13 @@ function tone(freq, dur, vol=0.3, type='sine', delay=0) {
   } catch(e) {}
 }
 function playStart() {
-  tone(1568, 0.12, 0.25, 'sine', 0);
-  tone(2093, 0.3,  0.22, 'sine', 0.11);
+  tone(1568, 0.12, 0.5, 'sine', 0);
+  tone(2093, 0.3,  0.45, 'sine', 0.11);
 }
-function playTick() { tone(1400, 0.04, 0.18, 'square', 0); }
+function playTick() { tone(1400, 0.06, 0.45, 'square', 0); }
 function playEnd() {
-  tone(1318, 0.15, 0.28, 'sine', 0);
-  tone(880,  0.5,  0.25, 'sine', 0.13);
+  tone(1318, 0.15, 0.5, 'sine', 0);
+  tone(880,  0.5,  0.45, 'sine', 0.13);
 }
 
 // ── STOPWATCH ──
@@ -439,16 +444,20 @@ function updateCD() {
   const el  = document.getElementById('cd-time');
   const bar = document.getElementById('bar');
   const dot = document.getElementById('status-dot');
+  const sec = document.querySelectorAll('.section')[1];
   el.textContent = fmtDown(cdSec);
   const ratio = cdInit > 0 ? cdSec / cdInit : 0;
   bar.style.width = (ratio * 100) + '%';
   el.className = 'time';
   bar.className = 'bar';
   dot.className = 'status-dot';
+  sec.className = 'section';
   if (cdSec <= 0) {
     el.classList.add('danger'); bar.classList.add('danger'); dot.classList.add('warn');
+    sec.classList.add('danger-bg');
   } else if (cdRun && cdSec <= 5) {
     el.classList.add('warn'); bar.classList.add('warn'); dot.classList.add('standby');
+    sec.classList.add('warn-bg');
   } else if (!cdRun) {
     el.classList.add('stopped');
     dot.classList.add(cdSec < cdInit ? 'ready' : 'standby');
@@ -457,6 +466,10 @@ function updateCD() {
   }
 }
 function toggleCD() {
+  if (cdSec <= 0) {
+    cdSec = cdInit;
+    updateCD();
+  }
   cdRun = !cdRun;
   const btn = document.getElementById('cd-btn');
   btn.textContent = cdRun ? 'stop' : 'start';
@@ -472,9 +485,7 @@ function tickCD() {
     document.getElementById('cd-btn').textContent = 'start';
     document.getElementById('cd-btn').classList.remove('active');
     updateCD();
-    if (navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
     playEnd();
-    setTimeout(() => { cdSec = cdInit; updateCD(); }, 800);
   } else {
     cdSec--;
     if (cdSec <= 5) playTick();
