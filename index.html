@@ -405,13 +405,13 @@ function tone(freq, dur, vol=0.3, type='sine', delay=0) {
   } catch(e) {}
 }
 function playStart() {
-  tone(1568, 0.12, 0.5, 'sine', 0);
-  tone(2093, 0.3,  0.45, 'sine', 0.11);
+  tone(1568, 0.12, 0.8, 'sine', 0);
+  tone(2093, 0.3,  0.7, 'sine', 0.11);
 }
-function playTick() { tone(1400, 0.06, 0.45, 'square', 0); }
+function playTick() { tone(1400, 0.06, 0.15, 'square', 0); }
 function playEnd() {
-  tone(1318, 0.15, 0.5, 'sine', 0);
-  tone(880,  0.5,  0.45, 'sine', 0.13);
+  tone(1318, 0.15, 0.8, 'sine', 0);
+  tone(880,  0.5,  0.7, 'sine', 0.13);
 }
 
 // ── STOPWATCH ──
