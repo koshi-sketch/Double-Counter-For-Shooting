@@ -1,4 +1,4 @@
-const CACHE = 'double-count-v1';
+const CACHE = 'double-count-v4';
 const FILES = [
   './index.html',
   './manifest.json'
