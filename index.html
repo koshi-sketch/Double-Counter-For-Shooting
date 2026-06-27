@@ -14,151 +14,271 @@
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400&family=Noto+Sans+JP:wght@300&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --warn: #ef9f27;
-      --danger: #e24b4a;
-    }
+    :root { --warn: #ef9f27; --danger: #e24b4a; }
 
     html, body {
-      height: 100%;
-      background: #000;
-      color: #fff;
+      height: 100%; background: #000; color: #fff;
       overflow: hidden;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
 
-    /* ── 全体レイアウト ── */
+    /* ── APP ── */
     .app {
       display: flex;
       flex-direction: column;
-      height: 100dvh;
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
+      /* 上部セーフエリア + 広告エリア分を引く */
+      padding-top: env(safe-area-inset-top, 0px);
+      height: calc(100dvh - 60px);
     }
 
+    /* ── 広告エリア ── */
+    .ad-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: #0a0a0a;
+      border-top: 0.5px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .ad-banner span {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 10px;
+      color: #333;
+      letter-spacing: 0.15em;
+    }
+
+    /* ── 歯車ボタン ── */
+    .gear-btn {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 16px);
+      right: 18px;
+      z-index: 300;
+      background: none; border: none;
+      color: #888;
+      cursor: pointer; padding: 4px; line-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, transform 0.4s;
+    }
+    .gear-btn:active { color: #fff; }
+    .gear-btn.open { color: #fff; transform: rotate(90deg); }
+
+    /* ── 設定パネル ── */
+    .settings-panel {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.97);
+      z-index: 250; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0;
+    }
+    .settings-panel.open { display: flex; }
+    .settings-title {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 11px; letter-spacing: 0.3em;
+      color: #666; text-transform: uppercase; margin-bottom: 20px;
+    }
+    .toggle-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      width: 290px; padding: 18px 0;
+      margin: 4px 0;
+      border-bottom: 0.5px solid #1a1a1a;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s;
+    }
+    .toggle-row.moving {
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      animation: row-pop 0.32s ease;
+    }
+    @keyframes row-pop {
+      0% { transform: scale(1.04); background: rgba(255,255,255,0.16); }
+      100% { transform: scale(1); background: rgba(255,255,255,0.08); }
+    }
+    .toggle-left { display: flex; align-items: center; gap: 14px; }
+    .reorder-btns { display: flex; flex-direction: column; gap: 6px; }
+    .reorder-btn {
+      background: #161616; border: 0.5px solid #2a2a2a;
+      color: #999; font-size: 14px; line-height: 1;
+      cursor: pointer; padding: 8px 12px; border-radius: 4px;
+      transition: background 0.12s, color 0.12s, transform 0.08s;
+    }
+    .reorder-btn:active { color: #fff; background: #333; transform: scale(0.9); }
+    .reorder-btn:disabled { color: #2a2a2a; background: #0d0d0d; border-color: #1a1a1a; cursor: default; }
+    .toggle-label {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 15px; font-weight: 300;
+      letter-spacing: 0.1em; color: #ccc;
+    }
+    .toggle {
+      width: 44px; height: 24px; background: #222;
+      border-radius: 12px; position: relative;
+      cursor: pointer; transition: background 0.2s;
+      border: none; flex-shrink: 0;
+    }
+    .toggle::after {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; background: #555;
+      border-radius: 50%; top: 3px; left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle.on::after { transform: translateX(20px); background: #fff; }
+    .settings-close {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 13px; letter-spacing: 0.15em;
+      color: #555; background: none;
+      border: 0.5px solid #333;
+      padding: 12px 32px; border-radius: 3px;
+      cursor: pointer; margin-top: 24px;
+    }
+    .settings-close:active { color: #fff; }
+
+    /* ── メインコンテンツエリア ──
+       1〜3個: 縦積み flex
+       4個: 2×2 grid */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .main-area.grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    /* ── セクション ── */
     .section {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      /* パディングはここだけで管理 */
-      padding: 20px 20px;
+      padding: 12px 16px;
+      transition: background 0.4s;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .section.hidden { display: none; }
+
+    /* 3つ以上のときは余白を詰める */
+    .main-area.count-3 .section,
+    .main-area.count-4 .section { padding: 8px 14px; }
+    .main-area.count-3 .label,
+    .main-area.count-4 .label { margin-bottom: 4px; font-size: 9px; }
+    .main-area.count-3 .bar-wrap { margin: 28px 0 24px; }
+    .main-area.count-4 .bar-wrap { margin: 6px 0 5px; }
+    .main-area.count-3 .btn-grid { margin-bottom: 20px; }
+    .main-area.count-4 .btn-grid { margin-bottom: 4px; }
+    .main-area.count-3 .btn-add { padding: 6px 0; }
+    .main-area.count-3 .btn-main,
+    .main-area.count-3 .btn-sub { padding: 9px; letter-spacing: 0.08em; }
+    .main-area.count-3 .row { gap: 5px; }
+    .main-area.count-3 .status-dot,
+    .main-area.count-4 .status-dot { margin-top: 4px; }
+    .main-area.count-3 #cu-btn,
+    .main-area.count-3 #cd-btn { padding: 9px; }
+    /* 3つの時、ストップウォッチの数字とボタンを離す */
+    .main-area.count-3 #sec-sw .row { margin-top: 40px !important; }
+    .main-area.count-3 #sec-ct .label { margin-top: 12px; }
+    .main-area.count-3 .counter-num { margin-top: 16px; margin-bottom: 28px; padding-top: 8px; line-height: 1.2; }
+    .main-area.count-3 .btn-counter { padding: 10px; font-size: 20px; }
+    .main-area.count-3 .btn-counter-reset { margin-top: 16px; padding: 5px; }
+
+    .main-area.count-4 #sec-cd .bar-wrap { margin: 24px 0 14px; }
+
+    /* 3つの時、カウントダウンが収まるよう全体を詰める */
+    .main-area.count-3 #sec-cd #cd-time { margin-top: 4px; }
+    .main-area.count-3 #sec-cd .bar-wrap { margin: 10px 0 8px; }
+    .main-area.count-3 #sec-cd .btn-grid { margin-bottom: 8px; }
+    .main-area.count-3 #sec-cd .btn-add { padding: 6px 0; }
+    .main-area.count-3 #cd-btn,
+    .main-area.count-3 #sec-cd .btn-sub { padding: 9px; font-size: 11px; letter-spacing: 0.06em; }
+    .main-area.count-3 #sec-cd .status-dot { margin-top: 5px; }
+
+    /* 2×2のとき右ボーダー */
+    .main-area.grid-2x2 .section:nth-child(odd) {
+      border-right: 0.5px solid #333;
+    }
+    /* 2×2のとき上段ボーダー */
+    .main-area.grid-2x2 .section:nth-child(1),
+    .main-area.grid-2x2 .section:nth-child(2) {
+      border-bottom: 0.5px solid #333;
     }
 
-    .divider { border: none; border-top: 0.5px solid #555; width: 100%; }
+    /* 縦積みの仕切り */
+    .divider { border: none; border-top: 0.5px solid #333; width: 100%; flex-shrink: 0; }
+    .divider.hidden { display: none; }
 
     /* ── ラベル ── */
     .label {
       font-family: 'Noto Sans JP', sans-serif;
-      font-size: 11px;
-      font-weight: 300;
-      letter-spacing: 0.28em;
-      color: #bbb;
-      text-transform: uppercase;
-      margin-bottom: 14px;
+      font-size: 10px; font-weight: 300;
+      letter-spacing: 0.25em; color: #bbb;
+      text-transform: uppercase; margin-bottom: 8px; flex-shrink: 0;
     }
+
+    /* ── 数字を固定高さの箱に入れて、サイズ変更で位置がずれないようにする ── */
+    #cu-time, #cd-time, #ct-num, #clock-time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      line-height: 1;
+    }
+    /* 表示数ごとの箱の高さ（フォントを変えてもこの高さは固定）*/
+    .main-area.count-1 #cu-time, .main-area.count-1 #clock-time { height: 104px; }
+    .main-area.count-2 #cu-time, .main-area.count-2 #clock-time { height: 94px; }
+    .main-area.count-3 #cu-time, .main-area.count-3 #clock-time { height: 74px; }
+    .main-area.count-4 #cu-time, .main-area.count-4 #clock-time { height: 48px; }
+    .main-area.count-1 #cd-time { height: 160px; }
+    .main-area.count-2 #cd-time { height: 140px; }
+    .main-area.count-3 #cd-time { height: 88px; }
+    .main-area.count-4 #cd-time { height: 60px; }
+    .main-area.count-1 #ct-num { height: 210px; }
+    .main-area.count-2 #ct-num { height: 160px; }
+    .main-area.count-3 #ct-num { height: 100px; }
+    .main-area.count-4 #ct-num { height: 80px; }
 
     /* ── 時間表示 ── */
     .time {
       font-family: 'Roboto Mono', monospace;
-      font-weight: 300;
-      font-size: 72px;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      transition: color 0.35s;
-      color: #fff;
+      font-weight: 300; font-size: 60px;
+      letter-spacing: -0.02em; line-height: 1;
+      transition: color 0.35s; color: #fff;
     }
+
+    /* ── 表示数に応じた数字サイズ調整（横幅に合わせて最大化）── */
+    /* stopwatch: 00:00:00 = 8文字 */
+    .main-area.count-1 #cu-time { font-size: min(15vw, 96px); }
+    .main-area.count-2 #cu-time { font-size: min(14.5vw, 88px); }
+    .main-area.count-3 #cu-time { font-size: min(13vw, 68px); }
+    .main-area.count-4 #cu-time { font-size: min(8.8vw, 36px); }
+    /* countdown: 00:45 = 5文字 */
+    .main-area.count-1 #cd-time { font-size: min(22vw, 150px) !important; }
+    .main-area.count-2 #cd-time { font-size: min(21vw, 130px) !important; }
+    .main-area.count-3 #cd-time { font-size: min(17vw, 72px) !important; }
+    .main-area.count-4 #cd-time { font-size: min(13vw, 52px) !important; }
+    /* counter: 0 = 1〜数文字 */
+    .main-area.count-1 #ct-num { font-size: min(40vw, 200px); }
+    .main-area.count-2 #ct-num { font-size: min(34vw, 150px); }
+    .main-area.count-3 #ct-num { font-size: min(22vw, 90px); }
+    .main-area.count-4 #ct-num { font-size: min(20vw, 72px); }
+    /* clock: 00:00:00 = 8文字 */
+    .main-area.count-1 #clock-time { font-size: min(15vw, 94px); }
+    .main-area.count-2 #clock-time { font-size: min(14.5vw, 86px); }
+    .main-area.count-3 #clock-time { font-size: min(13vw, 66px); }
+    .main-area.count-4 #clock-time { font-size: min(8.8vw, 36px); }
     .time.stopped { color: #444; }
-    .time.warn    { color: var(--warn); text-shadow: 0 0 30px rgba(239,159,39,0.6), 0 0 60px rgba(239,159,39,0.3); }
-    .time.danger  { color: var(--danger); text-shadow: 0 0 30px rgba(226,75,74,0.7), 0 0 60px rgba(226,75,74,0.4), 0 0 2px #fff, 0 0 6px #fff, 0 0 12px #fff; }
-
-    /* ── プログレスバー ── */
-    .bar-wrap {
-      width: 100%;
-      height: 1px;
-      background: #333;
-      margin: 16px 0 14px;
-    }
-    .bar {
-      height: 100%;
-      background: #888;
-      transition: width 0.6s linear, background 0.35s;
-    }
-    .bar.warn   { background: var(--warn); }
-    .bar.danger { background: var(--danger); }
-
-    /* ── +/− ボタングリッド ──
-       align-self: stretch で親幅いっぱいに広げる
-       grid自体はそこから4等分 */
-    .btn-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      align-self: stretch;   /* ← これが重要 */
-      margin-bottom: 10px;
-    }
-    .btn-add {
-      background: none;
-      border: 0.5px solid #666;
-      color: #ccc;
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 300;
-      font-size: 12px;
-      padding: 12px 0;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: color 0.12s, border-color 0.12s, transform 0.08s;
-    }
-    .btn-add.minus { color: #ccc; border-color: #666; }
-    .btn-add.minus:active { color: #fff; border-color: #aaa; transform: scale(0.93); }
-    .btn-add.plus:active  { color: #fff; border-color: #aaa; transform: scale(0.93); }
-
-    /* ── START / RESET ── */
-    .row {
-      display: flex;
-      gap: 10px;
-      align-self: stretch;   /* ← これも重要 */
-    }
-    .btn-main {
-      flex: 1;
-      background: #fff;
-      color: #000;
-      border: 0.5px solid transparent;
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 400;
-      font-size: 14px;
-      letter-spacing: 0.2em;
-      padding: 17px;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: transform 0.08s, background 0.2s, color 0.2s, border-color 0.2s;
-    }
-    .btn-main.active {
-      background: transparent;
-      color: var(--danger);
-      border-color: var(--danger);
-    }
-    .btn-main:active { transform: scale(0.95); }
-
-    .btn-sub {
-      flex: 1;
-      background: none;
-      color: #ccc;
-      border: 0.5px solid #666;
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 300;
-      font-size: 14px;
-      letter-spacing: 0.2em;
-      padding: 17px;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: transform 0.08s, color 0.12s;
-    }
-    .btn-sub:active { transform: scale(0.95); color: #fff; }
+    .time.warn  { color: var(--warn); text-shadow: 0 0 30px rgba(239,159,39,0.6), 0 0 60px rgba(239,159,39,0.3); }
+    .time.danger { color: var(--danger); text-shadow: 0 0 30px rgba(226,75,74,0.7), 0 0 60px rgba(226,75,74,0.4), 0 0 2px #fff, 0 0 6px #fff, 0 0 12px #fff; }
 
     @keyframes pulse-warn {
       0%, 100% { background: #000; }
@@ -166,92 +286,131 @@
     }
     .section.warn-bg   { animation: pulse-warn 1s ease-in-out infinite; }
     .section.danger-bg { background: #1a0000; }
+
+    /* ── プログレスバー ── */
+    .bar-wrap { width: 100%; height: 1px; background: #333; margin: 24px 0 18px; flex-shrink: 0; }
+    .bar { height: 100%; background: #888; transition: width 0.6s linear, background 0.35s; }
+    .bar.warn   { background: var(--warn); }
+    .bar.danger { background: var(--danger); }
+
+    /* ── ボタングリッド ── */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px; align-self: stretch;
+      margin-bottom: 6px; flex-shrink: 0;
+    }
+    .btn-add {
+      background: none; border: 0.5px solid #666;
+      color: #ccc; font-family: 'Roboto Mono', monospace;
+      font-weight: 300; font-size: 10px;
+      padding: 8px 0; border-radius: 3px; cursor: pointer;
+      transition: color 0.12s, transform 0.08s;
+    }
+    .btn-add:active { color: #fff; border-color: #aaa; transform: scale(0.93); }
+
+    /* ── START/RESET ── */
+    .row { display: flex; gap: 6px; align-self: stretch; flex-shrink: 0; }
+    .btn-main {
+      flex: 1; background: #fff; color: #000;
+      border: 0.5px solid transparent;
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 400; font-size: 12px;
+      letter-spacing: 0.15em; padding: 12px;
+      border-radius: 3px; cursor: pointer;
+      transition: transform 0.08s, background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-main.active { background: transparent; color: var(--danger); border-color: var(--danger); }
+    .btn-main:active { transform: scale(0.95); }
+    .btn-sub {
+      flex: 1; background: none; color: #ccc;
+      border: 0.5px solid #666;
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300; font-size: 12px;
+      letter-spacing: 0.15em; padding: 12px;
+      border-radius: 3px; cursor: pointer;
+      transition: transform 0.08s, color 0.12s;
+    }
+    .btn-sub:active { transform: scale(0.95); color: #fff; }
+
+    /* ── ステータスドット ── */
     .status-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #333;
-      margin-top: 14px;
+      width: 4px; height: 4px; border-radius: 50%;
+      background: #333; margin-top: 8px; flex-shrink: 0;
       transition: background 0.3s;
     }
     .status-dot.standby { background: #444; }
     .status-dot.ready   { background: #fff; }
     .status-dot.warn    { background: var(--warn); }
 
+    /* ── カウンター ── */
+    .counter-num {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300; font-size: min(20vw, 96px);
+      letter-spacing: -0.02em; line-height: 1;
+      color: #fff; margin-bottom: 28px; flex-shrink: 0;
+    }
+    .counter-row { display: flex; gap: 8px; align-self: stretch; flex-shrink: 0; }
+    .btn-counter {
+      flex: 1; background: none; border: 0.5px solid #666;
+      color: #ccc; font-family: 'Roboto Mono', monospace;
+      font-weight: 300; font-size: 26px;
+      padding: 16px; border-radius: 3px; cursor: pointer;
+      transition: color 0.1s, transform 0.08s;
+    }
+    .btn-counter.plus { background: #fff; color: #000; border-color: #fff; }
+    .btn-counter.plus:active { background: #ddd; transform: scale(0.95); }
+    .btn-counter.minus:active { color: #fff; border-color: #aaa; transform: scale(0.95); }
+    .btn-counter-reset {
+      align-self: stretch; background: none;
+      border: 0.5px solid #333; color: #444;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 10px; letter-spacing: 0.15em;
+      padding: 7px; border-radius: 3px;
+      cursor: pointer; margin-top: 6px; flex-shrink: 0;
+      transition: color 0.1s;
+    }
+    .btn-counter-reset:active { color: #fff; }
+
+    /* ── 時計 ── */
+    .clock-time {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300; font-size: min(16vw, 80px);
+      letter-spacing: -0.01em; color: #fff; line-height: 1;
+    }
+    .clock-date {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12px; font-weight: 300;
+      color: #555; letter-spacing: 0.08em; margin-top: 10px;
+    }
+
     /* ── 時間入力モーダル ── */
     .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
+      display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.97);
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      flex-direction: column;
-      gap: 16px;
+      align-items: center; justify-content: center;
+      z-index: 400; flex-direction: column; gap: 16px;
     }
     .modal-overlay.open { display: flex; }
-    .modal-hint {
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 11px;
-      color: #555;
-      letter-spacing: 0.2em;
-    }
-    .modal-time-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .modal-field {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-    .modal-field-label {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 11px;
-      color: #444;
-      letter-spacing: 0.18em;
-    }
+    .modal-hint { font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: #555; letter-spacing: 0.2em; }
+    .modal-time-row { display: flex; align-items: center; gap: 6px; }
+    .modal-field { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .modal-field-label { font-family: 'Roboto Mono', monospace; font-size: 11px; color: #444; letter-spacing: 0.18em; }
     .modal-val {
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 300;
-      font-size: 64px;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      min-width: 110px;
-      text-align: center;
-      padding: 10px 8px;
-      border-radius: 4px;
+      font-family: 'Roboto Mono', monospace; font-weight: 300;
+      font-size: 64px; letter-spacing: -0.02em; line-height: 1;
+      min-width: 110px; text-align: center;
+      padding: 10px 8px; border-radius: 4px;
       border: 0.5px solid #2a2a2a;
-      transition: border-color 0.2s, color 0.2s;
-      color: #444;
+      transition: border-color 0.2s, color 0.2s; color: #444;
     }
     .modal-val.active { border-color: #fff; color: #fff; }
-    .modal-colon {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 48px;
-      font-weight: 300;
-      color: #333;
-      padding-bottom: 8px;
-    }
-    .numpad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      width: 260px;
-    }
+    .modal-colon { font-family: 'Roboto Mono', monospace; font-size: 48px; font-weight: 300; color: #333; padding-bottom: 8px; }
+    .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 260px; }
     .np-btn {
-      background: #111;
-      border: 0.5px solid #2a2a2a;
-      color: #ccc;
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 300;
-      font-size: 22px;
-      padding: 18px;
-      border-radius: 3px;
-      cursor: pointer;
+      background: #111; border: 0.5px solid #2a2a2a; color: #ccc;
+      font-family: 'Roboto Mono', monospace; font-weight: 300;
+      font-size: 22px; padding: 18px; border-radius: 3px; cursor: pointer;
       transition: background 0.08s, transform 0.06s;
     }
     .np-btn:active { background: #222; transform: scale(0.93); }
@@ -262,81 +421,94 @@
 
     /* ── インストールバナー ── */
     #install-banner {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #0a0a0a;
-      border-top: 0.5px solid #333;
-      padding: 14px 20px;
-      align-items: center;
-      gap: 12px;
-      z-index: 100;
+      display: none; position: fixed; bottom: 60px; left: 0; right: 0;
+      background: #0a0a0a; border-top: 0.5px solid #333;
+      padding: 14px 20px; align-items: center; gap: 12px; z-index: 100;
     }
-    #install-banner p {
-      flex: 1;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 11px;
-      font-weight: 300;
-      color: #555;
-    }
-    .btn-install {
-      background: #fff; color: #000; border: none;
-      font-family: 'Roboto Mono', monospace;
-      font-size: 11px; letter-spacing: 0.1em;
-      padding: 9px 16px; border-radius: 3px; cursor: pointer;
-    }
-    .btn-close {
-      background: none; border: none; color: #3a3a3a;
-      font-size: 18px; cursor: pointer; padding: 4px;
-    }
+    #install-banner p { flex: 1; font-family: 'Noto Sans JP', sans-serif; font-size: 11px; font-weight: 300; color: #555; }
+    .btn-install { background: #fff; color: #000; border: none; font-family: 'Roboto Mono', monospace; font-size: 11px; letter-spacing: 0.1em; padding: 9px 16px; border-radius: 3px; cursor: pointer; }
+    .btn-close-banner { background: none; border: none; color: #3a3a3a; font-size: 18px; cursor: pointer; padding: 4px; }
   </style>
 </head>
 <body>
 
+<!-- 歯車 -->
+<button class="gear-btn" id="gear-btn" onclick="toggleSettings()" aria-label="settings">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+</button>
+
+<!-- 設定パネル -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-title">表示・並び替え</div>
+  <div id="settings-list"></div>
+  <button class="settings-close" onclick="toggleSettings()">close</button>
+</div>
+
+<!-- メイン -->
 <div class="app">
+  <div class="main-area" id="main-area">
 
-  <!-- STOPWATCH -->
-  <div class="section">
-    <div class="label">stopwatch</div>
-    <div class="time stopped" id="cu-time">00:00:00</div>
-    <div class="row" style="margin-top:24px;">
-      <button class="btn-main" id="cu-btn" onclick="toggleCU()">start</button>
-      <button class="btn-sub" onclick="resetCU()">reset</button>
+    <!-- STOPWATCH -->
+    <div class="section" id="sec-sw">
+      <div class="label">stopwatch</div>
+      <div class="time stopped" id="cu-time">00:00:00</div>
+      <div class="row" style="margin-top:32px;">
+        <button class="btn-main" id="cu-btn" onclick="toggleCU()">start</button>
+        <button class="btn-sub" onclick="resetCU()">reset</button>
+      </div>
     </div>
+
+    <!-- COUNTDOWN -->
+    <div class="section" id="sec-cd">
+      <div class="label">countdown</div>
+      <div class="time stopped" id="cd-time"
+           style="font-size:min(22vw,110px);letter-spacing:-0.03em;cursor:pointer;width:100%;text-align:center;"
+           onclick="openModal()">00:45</div>
+      <div class="bar-wrap"><div class="bar" id="bar" style="width:100%"></div></div>
+      <div class="btn-grid">
+        <button class="btn-add" onclick="addTime(-5)">−5</button>
+        <button class="btn-add" onclick="addTime(-10)">−10</button>
+        <button class="btn-add" onclick="addTime(-30)">−30</button>
+        <button class="btn-add" onclick="addTime(-60)">−1m</button>
+        <button class="btn-add" onclick="addTime(5)">+5</button>
+        <button class="btn-add" onclick="addTime(10)">+10</button>
+        <button class="btn-add" onclick="addTime(30)">+30</button>
+        <button class="btn-add" onclick="addTime(60)">+1m</button>
+      </div>
+      <div class="row">
+        <button class="btn-main" id="cd-btn" onclick="toggleCD()">start</button>
+        <button class="btn-sub" onclick="resetCD()">reset</button>
+      </div>
+      <div class="status-dot standby" id="status-dot"></div>
+    </div>
+
+    <!-- COUNTER -->
+    <div class="section hidden" id="sec-ct">
+      <div class="label">counter</div>
+      <div class="counter-num" id="ct-num">0</div>
+      <div class="counter-row">
+        <button class="btn-counter minus" onclick="countAdj(-1)">−</button>
+        <button class="btn-counter plus"  onclick="countAdj(1)">+</button>
+      </div>
+      <button class="btn-counter-reset" onclick="countReset()">reset</button>
+    </div>
+
+    <!-- CLOCK -->
+    <div class="section hidden" id="sec-cl">
+      <div class="label">clock</div>
+      <div class="clock-time" id="clock-time">00:00:00</div>
+      <div class="clock-date" id="clock-date"></div>
+    </div>
+
   </div>
+</div>
 
-  <hr class="divider">
-
-  <!-- COUNTDOWN -->
-  <div class="section">
-    <div class="label">countdown</div>
-    <div class="time stopped" id="cd-time"
-         style="font-size:min(26vw,130px);letter-spacing:-0.03em;cursor:pointer;"
-         onclick="openModal()">00:45</div>
-
-    <div class="bar-wrap">
-      <div class="bar" id="bar" style="width:100%"></div>
-    </div>
-
-    <div class="btn-grid">
-      <button class="btn-add minus" onclick="addTime(-5)">−5</button>
-      <button class="btn-add minus" onclick="addTime(-10)">−10</button>
-      <button class="btn-add minus" onclick="addTime(-30)">−30</button>
-      <button class="btn-add minus" onclick="addTime(-60)">−1m</button>
-      <button class="btn-add plus"  onclick="addTime(5)">+5</button>
-      <button class="btn-add plus"  onclick="addTime(10)">+10</button>
-      <button class="btn-add plus"  onclick="addTime(30)">+30</button>
-      <button class="btn-add plus"  onclick="addTime(60)">+1m</button>
-    </div>
-
-    <div class="row">
-      <button class="btn-main" id="cd-btn" onclick="toggleCD()">start</button>
-      <button class="btn-sub" onclick="resetCD()">reset</button>
-    </div>
-
-    <div class="status-dot standby" id="status-dot"></div>
-  </div>
-
+<!-- 広告エリア -->
+<div class="ad-banner">
+  <span>advertisement</span>
 </div>
 
 <!-- 時間入力モーダル -->
@@ -373,13 +545,19 @@
 <div id="install-banner">
   <p>ホーム画面に追加してオフラインで使えます</p>
   <button class="btn-install" onclick="installApp()">追加</button>
-  <button class="btn-close" onclick="closeBanner()">×</button>
+  <button class="btn-close-banner" onclick="closeBanner()">×</button>
 </div>
 
 <script>
 let cuSec = 0, cuRun = false, cuT = null;
 let cdSec = 45, cdInit = 45, cdRun = false, cdT = null;
+let ctCount = 0;
+let clockT = null;
 let deferredPrompt = null;
+
+const widgets = { sw: true, cd: true, ct: false, cl: false };
+let order = ['sw','cd','ct','cl'];
+const LABELS = { sw: 'stopwatch', cd: 'countdown', ct: 'counter', cl: 'clock' };
 
 const pad = n => String(n).padStart(2, '0');
 const fmtUp   = s => [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(pad).join(':');
@@ -414,6 +592,116 @@ function playEnd() {
   tone(880,  0.5,  0.7, 'sine', 0.13);
 }
 
+// ── 設定 ──
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const gear  = document.getElementById('gear-btn');
+  const open  = panel.classList.toggle('open');
+  gear.classList.toggle('open', open);
+  if (open) renderSettings();
+}
+
+function renderSettings() {
+  const list = document.getElementById('settings-list');
+  list.innerHTML = '';
+  order.forEach((key, i) => {
+    const row = document.createElement('div');
+    row.className = 'toggle-row';
+
+    const left = document.createElement('div');
+    left.className = 'toggle-left';
+
+    const reorder = document.createElement('div');
+    reorder.className = 'reorder-btns';
+    const up = document.createElement('button');
+    up.className = 'reorder-btn'; up.textContent = '▲';
+    up.disabled = (i === 0);
+    up.onclick = () => moveWidget(i, -1);
+    const down = document.createElement('button');
+    down.className = 'reorder-btn'; down.textContent = '▼';
+    down.disabled = (i === order.length - 1);
+    down.onclick = () => moveWidget(i, 1);
+    reorder.appendChild(up); reorder.appendChild(down);
+
+    const label = document.createElement('span');
+    label.className = 'toggle-label';
+    label.textContent = LABELS[key];
+
+    left.appendChild(reorder);
+    left.appendChild(label);
+
+    const tog = document.createElement('button');
+    tog.className = 'toggle' + (widgets[key] ? ' on' : '');
+    tog.onclick = () => toggleWidget(key);
+
+    row.appendChild(left);
+    row.appendChild(tog);
+    list.appendChild(row);
+  });
+}
+
+function moveWidget(index, dir) {
+  const ni = index + dir;
+  if (ni < 0 || ni >= order.length) return;
+  [order[index], order[ni]] = [order[ni], order[index]];
+  renderSettings();
+  renderLayout();
+  // 移動した行をハイライトして動いたことを示す
+  const rows = document.querySelectorAll('#settings-list .toggle-row');
+  if (rows[ni]) {
+    rows[ni].classList.add('moving');
+    setTimeout(() => rows[ni].classList.remove('moving'), 320);
+  }
+}
+
+function toggleWidget(key) {
+  const active = order.filter(k => widgets[k]);
+  if (active.length === 1 && widgets[key]) return; // 最低1つ残す
+  widgets[key] = !widgets[key];
+  renderSettings();
+  renderLayout();
+}
+
+function renderLayout() {
+  const active = order.filter(k => widgets[k]);
+  const count  = active.length;
+  const area   = document.getElementById('main-area');
+
+  // セクション要素を事前に保持（innerHTML消去で破棄されないよう退避）
+  const secs = {};
+  order.forEach(k => { secs[k] = document.getElementById('sec-' + k); });
+
+  // 一旦すべて取り外す（仕切りhrだけ消す）
+  Array.from(area.querySelectorAll('hr')).forEach(hr => hr.remove());
+  order.forEach(k => { if (secs[k].parentNode) area.removeChild(secs[k]); });
+
+  const base = count === 4 ? 'main-area grid-2x2' : 'main-area';
+  area.className = base + ' count-' + count;
+
+  if (count === 4) {
+    order.forEach(k => {
+      secs[k].classList.remove('hidden');
+      area.appendChild(secs[k]);
+    });
+  } else {
+    active.forEach((k, i) => {
+      secs[k].classList.remove('hidden');
+      area.appendChild(secs[k]);
+      if (i < active.length - 1) {
+        const hr = document.createElement('hr');
+        hr.className = 'divider';
+        area.appendChild(hr);
+      }
+    });
+    order.filter(k => !widgets[k]).forEach(k => {
+      secs[k].classList.add('hidden');
+      area.appendChild(secs[k]);
+    });
+  }
+
+  if (widgets.cl) startClock(); else stopClock();
+}
+
 // ── STOPWATCH ──
 function toggleCU() {
   cuRun = !cuRun;
@@ -426,9 +714,7 @@ function toggleCU() {
       cuSec++;
       document.getElementById('cu-time').textContent = fmtUp(cuSec);
     }, 1000);
-  } else {
-    clearInterval(cuT);
-  }
+  } else { clearInterval(cuT); }
 }
 function resetCU() {
   clearInterval(cuT); cuRun = false; cuSec = 0;
@@ -440,11 +726,13 @@ function resetCU() {
 }
 
 // ── COUNTDOWN ──
+function getCdSection() { return document.getElementById('sec-cd'); }
+
 function updateCD() {
   const el  = document.getElementById('cd-time');
   const bar = document.getElementById('bar');
   const dot = document.getElementById('status-dot');
-  const sec = document.querySelectorAll('.section')[1];
+  const sec = getCdSection();
   el.textContent = fmtDown(cdSec);
   const ratio = cdInit > 0 ? cdSec / cdInit : 0;
   bar.style.width = (ratio * 100) + '%';
@@ -466,10 +754,7 @@ function updateCD() {
   }
 }
 function toggleCD() {
-  if (cdSec <= 0) {
-    cdSec = cdInit;
-    updateCD();
-  }
+  if (cdSec <= 0) { cdSec = cdInit; updateCD(); }
   cdRun = !cdRun;
   const btn = document.getElementById('cd-btn');
   btn.textContent = cdRun ? 'stop' : 'start';
@@ -484,8 +769,7 @@ function tickCD() {
     clearInterval(cdT); cdRun = false;
     document.getElementById('cd-btn').textContent = 'start';
     document.getElementById('cd-btn').classList.remove('active');
-    updateCD();
-    playEnd();
+    updateCD(); playEnd();
   } else {
     cdSec--;
     if (cdSec <= 5) playTick();
@@ -500,6 +784,32 @@ function resetCD() {
 }
 function addTime(s) {
   if (!cdRun) { cdSec = Math.max(0, cdSec + s); cdInit = cdSec; updateCD(); }
+}
+
+// ── COUNTER ──
+function countAdj(d) {
+  ctCount += d;
+  document.getElementById('ct-num').textContent = ctCount;
+}
+function countReset() {
+  ctCount = 0;
+  document.getElementById('ct-num').textContent = 0;
+}
+
+// ── CLOCK ──
+function startClock() {
+  if (clockT) return;
+  updateClock();
+  clockT = setInterval(updateClock, 1000);
+}
+function stopClock() { clearInterval(clockT); clockT = null; }
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock-time').textContent =
+    [now.getHours(), now.getMinutes(), now.getSeconds()].map(pad).join(':');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('clock-date').textContent =
+    `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())}  ${days[now.getDay()]}`;
 }
 
 // ── MODAL ──
@@ -535,9 +845,7 @@ function npDel() {
   if (npFocus === 'sec') {
     if (npSec.length > 0) npSec = npSec.slice(0,-1);
     else { npFocus = 'min'; npMin = npMin.slice(0,-1); }
-  } else {
-    npMin = npMin.slice(0,-1);
-  }
+  } else { npMin = npMin.slice(0,-1); }
   updateModalDisplay();
 }
 function npConfirm() {
@@ -547,7 +855,7 @@ function npConfirm() {
   updateCD(); closeModal();
 }
 
-// ── SERVICE WORKER ──
+// ── SW ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
@@ -565,7 +873,9 @@ function installApp() {
 }
 function closeBanner() { document.getElementById('install-banner').style.display = 'none'; }
 
+// ── INIT ──
 updateCD();
+renderLayout();
 </script>
 </body>
 </html>
